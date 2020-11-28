@@ -20,7 +20,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	args := sharedRPC.MyFloats{16, -0.5}
+	args := sharedRPC.MyFloats{A1: 16, A2: -0.5}
 	var reply float64
 
 	err = c.Call("MyInterface.Multiply", args, &reply)
