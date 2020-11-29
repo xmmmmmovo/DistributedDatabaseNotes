@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/mastering_go.iml" filepath="$PROJECT_DIR$/mastering_go.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MasteringGO.iml" filepath="$PROJECT_DIR$/MasteringGO.iml" />
     </modules>
   </component>
 </project>

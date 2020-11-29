@@ -41,6 +41,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
 	var waitGroup sync.WaitGroup
 	fmt.Printf("%d ", read())
 	for i := 0; i < numGR; i++ {
