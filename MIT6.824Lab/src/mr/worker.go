@@ -30,6 +30,7 @@ func ihash(key string) int {
 //
 func Worker(mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string) {
+	// 这里的mapf和reducef是maph函数和reduce函数
 
 	// Your worker implementation here.
 
@@ -46,13 +47,13 @@ func Worker(mapf func(string, string) []KeyValue,
 func CallExample() {
 
 	// declare an argument structure.
-	args := ExampleArgs{}
+	args := MasterArgs{}
 
 	// fill in the argument(s).
 	args.X = 99
 
 	// declare a reply structure.
-	reply := ExampleReply{}
+	reply := MasterReply{}
 
 	// send the RPC request, wait for the reply.
 	call("Master.Example", &args, &reply)

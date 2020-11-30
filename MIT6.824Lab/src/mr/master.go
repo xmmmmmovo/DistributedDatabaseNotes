@@ -1,15 +1,20 @@
 package mr
 
-import "log"
+import (
+	"log"
+	"sync"
+)
 import "net"
 import "os"
 import "net/rpc"
 import "net/http"
 
-
 type Master struct {
 	// Your definitions here.
-
+	WorkerN       int
+	MapWorkerN    int
+	ReduceWorkerN int
+	mutex         sync.Mutex
 }
 
 // Your code here -- RPC handlers for the worker to call.
@@ -19,16 +24,16 @@ type Master struct {
 //
 // the RPC argument and reply types are defined in rpc.go.
 //
-func (m *Master) Example(args *ExampleArgs, reply *ExampleReply) error {
+func (m *Master) Example(args *MasterArgs, reply *MasterReply) error {
 	reply.Y = args.X + 1
 	return nil
 }
 
-
 //
-// start a thread that listens for RPCs from worker.go
+// 启动线程监听worker
 //
 func (m *Master) server() {
+	// 注册服务
 	rpc.Register(m)
 	rpc.HandleHTTP()
 	//l, e := net.Listen("tcp", ":1234")
@@ -50,7 +55,6 @@ func (m *Master) Done() bool {
 
 	// Your code here.
 
-
 	return ret
 }
 
@@ -63,7 +67,6 @@ func MakeMaster(files []string, nReduce int) *Master {
 	m := Master{}
 
 	// Your code here.
-
 
 	m.server()
 	return &m

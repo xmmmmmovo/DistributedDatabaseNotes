@@ -14,11 +14,11 @@ import "strconv"
 // and reply for an RPC.
 //
 
-type ExampleArgs struct {
+type MasterArgs struct {
 	X int
 }
 
-type ExampleReply struct {
+type MasterReply struct {
 	Y int
 }
 

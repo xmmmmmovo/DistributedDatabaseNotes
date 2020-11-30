@@ -25,8 +25,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	// 这里读取wc.go中的Map和Reduce
 	mapf, reducef := loadPlugin(os.Args[1])
 
+	// 传参给worker
 	mr.Worker(mapf, reducef)
 }
 
