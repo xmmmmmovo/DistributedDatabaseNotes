@@ -9,21 +9,32 @@ package mr
 import "os"
 import "strconv"
 
-//
-// example to show how to declare the arguments
-// and reply for an RPC.
-//
-
-type MasterArgs struct {
-	X int
-}
-
-type MasterReply struct {
-	Y int
-}
-
 // Add your RPC definitions here.
 
+// 注册参数
+type RegisterArgs struct {
+}
+
+// 注册返回
+type RegisterReply struct {
+	Id int
+}
+
+// 获取任务参数
+type FetchArgs struct {
+}
+
+// 获取任务返回
+type FetchReply struct {
+}
+
+// 报告参数
+type ReportArgs struct {
+}
+
+// 报告返回
+type ReportReply struct {
+}
 
 // Cook up a unique-ish UNIX-domain socket name
 // in /var/tmp, for the master.

@@ -1,6 +1,7 @@
 package mr
 
 import (
+	"fmt"
 	"log"
 	"sync"
 )
@@ -9,24 +10,47 @@ import "os"
 import "net/rpc"
 import "net/http"
 
+type IMaster interface {
+	RegisterWorker(args *RegisterArgs, reply *RegisterReply) error
+	FetchWorker(args *FetchArgs, reply *FetchReply) error
+	ReportWorker(args *RegisterArgs, reply *RegisterReply) error
+}
+
+type workerStatus struct {
+	status   int
+	workerId int
+}
+
 type Master struct {
 	// Your definitions here.
-	WorkerN       int
-	MapWorkerN    int
-	ReduceWorkerN int
-	mutex         sync.Mutex
+	fileNames      []string
+	workerList     []workerStatus
+	nReduce        int
+	workerId       int
+	outputFileMap  map[int][]string
+	mapFinished    int
+	reduceFinished int
+	mutex          sync.RWMutex
 }
 
 // Your code here -- RPC handlers for the worker to call.
 
-//
-// an example RPC handler.
-//
-// the RPC argument and reply types are defined in rpc.go.
-//
-func (m *Master) Example(args *MasterArgs, reply *MasterReply) error {
-	reply.Y = args.X + 1
+// RegisterWorker 注册worker 用于派发id
+func (m *Master) RegisterWorker(args *RegisterArgs, reply *RegisterReply) error {
+	m.mutex.Lock()
+	reply.Id = m.workerId
+	m.workerId++
+	m.mutex.Unlock()
+	fmt.Println("Worker注册成功！Id:", reply.Id)
 	return nil
+}
+
+func (m *Master) FetchWorker(args *FetchArgs, reply *FetchReply) error {
+	panic("implement me")
+}
+
+func (m *Master) ReportWorker(args *RegisterArgs, reply *RegisterReply) error {
+	panic("implement me")
 }
 
 //
@@ -64,7 +88,14 @@ func (m *Master) Done() bool {
 // nReduce is the number of reduce tasks to use.
 //
 func MakeMaster(files []string, nReduce int) *Master {
-	m := Master{}
+	m := Master{
+		fileNames:      files,
+		nReduce:        nReduce,
+		workerId:       0,
+		outputFileMap:  make(map[int][]string),
+		mapFinished:    0,
+		reduceFinished: 0,
+	}
 
 	// Your code here.
 

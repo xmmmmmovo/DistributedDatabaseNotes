@@ -1,10 +1,14 @@
 package mr
 
-import "fmt"
+import (
+	"fmt"
+	"io/ioutil"
+	"sort"
+	"time"
+)
 import "log"
 import "net/rpc"
 import "hash/fnv"
-
 
 //
 // Map functions return a slice of KeyValue.
@@ -13,6 +17,13 @@ type KeyValue struct {
 	Key   string
 	Value string
 }
+
+type ByKey []KeyValue
+
+// for sorting by key.
+func (a ByKey) Len() int           { return len(a) }
+func (a ByKey) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByKey) Less(i, j int) bool { return a[i].Key < a[j].Key }
 
 //
 // use ihash(key) % NReduce to choose the reduce
@@ -24,7 +35,6 @@ func ihash(key string) int {
 	return int(h.Sum32() & 0x7fffffff)
 }
 
-
 //
 // main/mrworker.go calls this function.
 //
@@ -33,33 +43,58 @@ func Worker(mapf func(string, string) []KeyValue,
 	// 这里的mapf和reducef是maph函数和reduce函数
 
 	// Your worker implementation here.
+	workerId, ok := callRegisterWorker()
+	if !ok {
+		fmt.Println("获取Id失败！")
+		return
+	}
+	fmt.Println("获取到当前workerId", workerId)
 
 	// uncomment to send the Example RPC to the master.
 	// CallExample()
-
+	for {
+		log.Println("运行中")
+		time.Sleep(time.Second * 3)
+	}
 }
 
-//
-// example function to show how to make an RPC call to the master.
-//
-// the RPC argument and reply types are defined in rpc.go.
-//
-func CallExample() {
+func callRegisterWorker() (int, bool) {
+	args := RegisterArgs{}
+	reply := RegisterReply{}
 
-	// declare an argument structure.
-	args := MasterArgs{}
+	err := call("Master.RegisterWorker", &args, &reply)
+	return reply.Id, err
+}
 
-	// fill in the argument(s).
-	args.X = 99
+func mapFuncTask(filename string, mapf func(string, string) []KeyValue, nReduce int) error {
+	// 读文件
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	intermediate := make(map[int][]KeyValue)
+	// map 函数
+	mapKV := mapf(filename, string(content))
+	for _, v := range mapKV {
+		idx := ihash(v.Key) % nReduce
+		intermediate[idx] = append(intermediate[idx], v)
+	}
 
-	// declare a reply structure.
-	reply := MasterReply{}
+	// 排序
+	for k := range intermediate {
+		sort.Sort(ByKey(intermediate[k]))
+	}
 
-	// send the RPC request, wait for the reply.
-	call("Master.Example", &args, &reply)
+	// 写中间文件
+	//dir := "./tmp/"
+	//for k, v := range intermediate {
+	//
+	//}
 
-	// reply.Y should be 100.
-	fmt.Printf("reply.Y %v\n", reply.Y)
+	return nil
+}
+
+func reduceFuncTask(reducef func(string, []string) string) {
 }
 
 //
