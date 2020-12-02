@@ -1,9 +1,10 @@
 package mr
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"sort"
+	"os"
 	"time"
 )
 import "log"
@@ -54,7 +55,8 @@ func Worker(mapf func(string, string) []KeyValue,
 	// CallExample()
 	for {
 		log.Println("运行中")
-		time.Sleep(time.Second * 3)
+		callFetchWorker()
+		time.Sleep(time.Second * 10)
 	}
 }
 
@@ -66,7 +68,10 @@ func callRegisterWorker() (int, bool) {
 	return reply.Id, err
 }
 
-func mapFuncTask(filename string, mapf func(string, string) []KeyValue, nReduce int) error {
+func callFetchWorker() {
+}
+
+func mapFuncTask(id int, filename string, mapf func(string, string) []KeyValue, nReduce int) error {
 	// 读文件
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -80,16 +85,25 @@ func mapFuncTask(filename string, mapf func(string, string) []KeyValue, nReduce 
 		intermediate[idx] = append(intermediate[idx], v)
 	}
 
-	// 排序
-	for k := range intermediate {
-		sort.Sort(ByKey(intermediate[k]))
-	}
-
 	// 写中间文件
-	//dir := "./tmp/"
-	//for k, v := range intermediate {
-	//
-	//}
+	dir := "./tmp/"
+	for k, v := range intermediate {
+		filename = fmt.Sprintf("mr-%d-%d", id, k)
+		f, err := os.Create(dir + filename)
+		if err != nil {
+			return err
+		}
+		jsonEncoder := json.NewEncoder(f)
+		for _, kv := range v {
+
+			if err := jsonEncoder.Encode(kv); err != nil {
+				return err
+			}
+		}
+		if err := f.Close(); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

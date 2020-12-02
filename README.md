@@ -1,25 +1,25 @@
 # DistributedSystemNotes
 分布式系统笔记
 
-## [MasteringGo](./MasteringGo/)
+## [MasteringGo](https://github.com/hantmac/Mastering_Go_Second_Edition_Zh_CN)
 
-- [Go基本数据类型](./MasteringGo/type/)
-- [组合类型的使用](./MasteringGo/combition/)
-- [数据结构](./MasteringGo/ds/)
-- [Go package中不为人知的知识](./MasteringGo/package/)
-- [反射和接口](./MasteringGo/reflection/)
-- [Go UNIX系统编程](./MasteringGo/unix/)
-- [并发-Goroutines,Channel和Pipeline](./MasteringGo/goroutine/)
-- [Go 并发-进阶讨论](./MasteringGo/complicating/)
-- [代码测试，优化及分析](./MasteringGo/test/)
-- [Go网络编程基础](./MasteringGo/net/)
-- [网络编程 - 构建服务器与客户端](./MasteringGo/socket/)
+- Go基本数据类型
+- 组合类型的使用
+- 数据结构
+- Go package中不为人知的知识
+- 反射和接口
+- Go UNIX系统编程
+- 并发-Goroutines,Channel和Pipeline
+- Go 并发-进阶讨论
+- 代码测试，优化及分析
+- Go网络编程基础
+- 网络编程 - 构建服务器与客户端
 
-## [MIT6.824Lab](https://pdos.csail.mit.edu/6.824/schedule.html)
+## [MIT6.824(2020Spring)](https://pdos.csail.mit.edu/6.824/schedule.html)
 
 ### Lab1 MapReduce
 
-实现一个MapReduce框架用以进行分布式计算，测试程序则是经典的WordCount.
+实现一个MapReduce框架用以进行分布式计算。
 
 论文：
 
@@ -29,13 +29,21 @@
 
 - [RPC](https://zh.wikipedia.org/wiki/%E9%81%A0%E7%A8%8B%E9%81%8E%E7%A8%8B%E8%AA%BF%E7%94%A8)
 
+- ![img](https://cdn.jsdelivr.net/gh/xmmmmmovo/ResourcesBackup/blog/pics/1851446-33e55a9d966642c3.png)
+
 实现：[mr](./MIT6.824Lab/src/mr)
+
+- [ ] wc
+- [ ] 容错
+- [ ] 索引倒排
+- [ ] 备份
+- [ ] 改进
 
 ### Lab2 Raft
 
 #### Lab2A
 
-
+[Students' Guide to Raft](https://thesquareplanet.com/blog/students-guide-to-raft/)
 
 
 
@@ -49,7 +57,14 @@
 
 
 
+## Redis源码阅读计划
 
+[**redis源码解析**](https://redissrc.readthedocs.io/en/latest/#)
 
+[**redis 3.2.8 的源码注释**](https://github.com/menwengit/redis_source_annotation)
 
+[**Redis 设计与实现**](http://origin.redisbook.com/)
 
+[**带有详细注释的 Redis 3.0 代码（annotated Redis 3.0 source code）**](https://github.com/huangz1990/redis-3.0-annotated)
+
+[**Redis 命令参考**](http://redisdoc.com/)

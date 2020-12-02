@@ -17,36 +17,50 @@ type IMaster interface {
 }
 
 type workerStatus struct {
-	status   int
-	workerId int
+	status int
 }
 
 type Master struct {
 	// Your definitions here.
-	fileNames      []string
-	workerList     []workerStatus
-	nReduce        int
-	workerId       int
-	outputFileMap  map[int][]string
-	mapFinished    int
-	reduceFinished int
-	mutex          sync.RWMutex
+	fileNames         []string
+	workerMap         map[int]*workerStatus
+	nReduce           int
+	workerId          int
+	outputFileMap     map[int][]string
+	mapRequests       int
+	reduceFinished    int
+	workerIdMutex     sync.RWMutex
+	workerMapMutex    sync.RWMutex
+	workerOutputMutex sync.RWMutex
 }
 
 // Your code here -- RPC handlers for the worker to call.
 
 // RegisterWorker 注册worker 用于派发id
 func (m *Master) RegisterWorker(args *RegisterArgs, reply *RegisterReply) error {
-	m.mutex.Lock()
+	m.workerIdMutex.Lock()
 	reply.Id = m.workerId
 	m.workerId++
-	m.mutex.Unlock()
+	m.workerIdMutex.Unlock()
 	fmt.Println("Worker注册成功！Id:", reply.Id)
+	m.workerMap[reply.Id] = &workerStatus{
+		status: 0,
+	}
 	return nil
 }
 
 func (m *Master) FetchWorker(args *FetchArgs, reply *FetchReply) error {
-	panic("implement me")
+	if m.mapRequests < len(m.fileNames) {
+		m.workerMapMutex.Lock()
+		m.workerMap[args.Id].status = 1
+		m.mapRequests++
+		m.workerMapMutex.Unlock()
+		reply.FileName = m.fileNames[m.mapRequests-1]
+		reply.Status = 1
+		return nil
+	}
+
+	return nil
 }
 
 func (m *Master) ReportWorker(args *RegisterArgs, reply *RegisterReply) error {
@@ -91,9 +105,10 @@ func MakeMaster(files []string, nReduce int) *Master {
 	m := Master{
 		fileNames:      files,
 		nReduce:        nReduce,
+		workerMap:      make(map[int]*workerStatus),
 		workerId:       0,
 		outputFileMap:  make(map[int][]string),
-		mapFinished:    0,
+		mapRequests:    0,
 		reduceFinished: 0,
 	}
 

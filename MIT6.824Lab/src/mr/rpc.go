@@ -22,10 +22,13 @@ type RegisterReply struct {
 
 // 获取任务参数
 type FetchArgs struct {
+	Id int
 }
 
 // 获取任务返回
 type FetchReply struct {
+	Status   int
+	FileName string
 }
 
 // 报告参数
