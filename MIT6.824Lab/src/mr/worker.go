@@ -55,7 +55,8 @@ func Worker(mapf func(string, string) []KeyValue,
 	// CallExample()
 	for {
 		log.Println("运行中")
-		callFetchWorker()
+		status, filenames, ok := callFetchWorker()
+		fmt.Println("status:", status, "filenames", filenames, "ok", ok)
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -68,7 +69,12 @@ func callRegisterWorker() (int, bool) {
 	return reply.Id, err
 }
 
-func callFetchWorker() {
+func callFetchWorker() (int, []string, bool) {
+	args := FetchArgs{}
+	reply := FetchReply{}
+
+	err := call("Master.FetchWorker", &args, &reply)
+	return reply.Status, reply.FileNames, err
 }
 
 func mapFuncTask(id int, filename string, mapf func(string, string) []KeyValue, nReduce int) error {

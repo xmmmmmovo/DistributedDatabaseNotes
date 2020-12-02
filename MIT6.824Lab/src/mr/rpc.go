@@ -28,7 +28,7 @@ type FetchArgs struct {
 // 获取任务返回
 type FetchReply struct {
 	Status   int
-	FileName string
+	FileNames []string
 }
 
 // 报告参数

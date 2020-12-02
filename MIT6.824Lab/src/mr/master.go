@@ -26,9 +26,9 @@ type Master struct {
 	workerMap         map[int]*workerStatus
 	nReduce           int
 	workerId          int
-	outputFileMap     map[int][]string
+	outputFileMap     [][]string
 	mapRequests       int
-	reduceFinished    int
+	reduceStart       int
 	workerIdMutex     sync.RWMutex
 	workerMapMutex    sync.RWMutex
 	workerOutputMutex sync.RWMutex
@@ -54,12 +54,21 @@ func (m *Master) FetchWorker(args *FetchArgs, reply *FetchReply) error {
 		m.workerMapMutex.Lock()
 		m.workerMap[args.Id].status = 1
 		m.mapRequests++
+		reply.FileNames = []string{m.fileNames[m.mapRequests-1]}
 		m.workerMapMutex.Unlock()
-		reply.FileName = m.fileNames[m.mapRequests-1]
 		reply.Status = 1
 		return nil
 	}
-
+	if m.reduceStart < m.nReduce {
+		m.workerMapMutex.Lock()
+		m.workerMap[args.Id].status = 2
+		m.reduceStart++
+		reply.FileNames = m.outputFileMap[m.reduceStart-1]
+		m.workerMapMutex.Unlock()
+		reply.Status = 2
+		return nil
+	}
+	reply.Status = 0
 	return nil
 }
 
@@ -103,13 +112,12 @@ func (m *Master) Done() bool {
 //
 func MakeMaster(files []string, nReduce int) *Master {
 	m := Master{
-		fileNames:      files,
-		nReduce:        nReduce,
-		workerMap:      make(map[int]*workerStatus),
-		workerId:       0,
-		outputFileMap:  make(map[int][]string),
-		mapRequests:    0,
-		reduceFinished: 0,
+		fileNames:   files,
+		nReduce:     nReduce,
+		workerMap:   make(map[int]*workerStatus),
+		workerId:    0,
+		mapRequests: 0,
+		reduceStart: 0,
 	}
 
 	// Your code here.
