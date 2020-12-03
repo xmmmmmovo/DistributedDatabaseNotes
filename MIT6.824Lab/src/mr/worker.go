@@ -55,8 +55,22 @@ func Worker(mapf func(string, string) []KeyValue,
 	// CallExample()
 	for {
 		log.Println("运行中")
-		status, filenames, ok := callFetchWorker()
-		fmt.Println("status:", status, "filenames", filenames, "ok", ok)
+		status, nReduce, filenames, ok := callFetchWorker()
+		if !ok {
+			fmt.Println("获取任务失败！")
+			return
+		}
+		fmt.Println("获取状态:", status, "文件列表", filenames)
+		switch status {
+		case 1:
+			err := mapFuncTask(workerId, filenames[0], mapf, nReduce)
+			if err != nil {
+				fmt.Println("执行map失败！")
+				return
+			}
+		case 2:
+			reduceFuncTask(reducef)
+		}
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -69,12 +83,12 @@ func callRegisterWorker() (int, bool) {
 	return reply.Id, err
 }
 
-func callFetchWorker() (int, []string, bool) {
+func callFetchWorker() (int, int, []string, bool) {
 	args := FetchArgs{}
 	reply := FetchReply{}
 
 	err := call("Master.FetchWorker", &args, &reply)
-	return reply.Status, reply.FileNames, err
+	return reply.Status, reply.NReduce, reply.FileNames, err
 }
 
 func mapFuncTask(id int, filename string, mapf func(string, string) []KeyValue, nReduce int) error {

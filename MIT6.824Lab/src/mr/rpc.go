@@ -27,8 +27,9 @@ type FetchArgs struct {
 
 // 获取任务返回
 type FetchReply struct {
-	Status   int
+	Status    int
 	FileNames []string
+	NReduce   int
 }
 
 // 报告参数

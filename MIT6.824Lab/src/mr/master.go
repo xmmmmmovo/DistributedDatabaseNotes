@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 )
 import "net"
 import "os"
@@ -14,24 +15,26 @@ type IMaster interface {
 	RegisterWorker(args *RegisterArgs, reply *RegisterReply) error
 	FetchWorker(args *FetchArgs, reply *FetchReply) error
 	ReportWorker(args *RegisterArgs, reply *RegisterReply) error
+	checkWorkerRunStatus()
 }
 
 type workerStatus struct {
-	status int
+	status        int
+	fileIndex     int
+	fetchWorkTime time.Time
 }
 
 type Master struct {
 	// Your definitions here.
-	fileNames         []string
-	workerMap         map[int]*workerStatus
-	nReduce           int
-	workerId          int
-	outputFileMap     [][]string
-	mapRequests       int
-	reduceStart       int
-	workerIdMutex     sync.RWMutex
-	workerMapMutex    sync.RWMutex
-	workerOutputMutex sync.RWMutex
+	fileNames            []string              // 文件名列表
+	workerMap            map[int]*workerStatus // 工作状态
+	nReduce              int                   // reduce数量
+	workerId             int                   // id
+	outputFileMap        [][]string            // 输出文件
+	mapStart             int                   // map请求数量
+	reduceStart          int                   // reduce开始数量
+	workerIdMutex        sync.RWMutex          // id锁
+	workerMapReduceMutex sync.RWMutex          // mr锁
 }
 
 // Your code here -- RPC handlers for the worker to call.
@@ -50,30 +53,44 @@ func (m *Master) RegisterWorker(args *RegisterArgs, reply *RegisterReply) error 
 }
 
 func (m *Master) FetchWorker(args *FetchArgs, reply *FetchReply) error {
-	if m.mapRequests < len(m.fileNames) {
-		m.workerMapMutex.Lock()
+	if m.mapStart < len(m.fileNames) {
+		m.workerMapReduceMutex.Lock()
 		m.workerMap[args.Id].status = 1
-		m.mapRequests++
-		reply.FileNames = []string{m.fileNames[m.mapRequests-1]}
-		m.workerMapMutex.Unlock()
+		m.mapStart++
+		reply.FileNames = []string{m.fileNames[m.mapStart-1]}
+		m.workerMapReduceMutex.Unlock()
 		reply.Status = 1
+		reply.NReduce = m.nReduce
 		return nil
 	}
 	if m.reduceStart < m.nReduce {
-		m.workerMapMutex.Lock()
+		m.workerMapReduceMutex.Lock()
 		m.workerMap[args.Id].status = 2
 		m.reduceStart++
 		reply.FileNames = m.outputFileMap[m.reduceStart-1]
-		m.workerMapMutex.Unlock()
+		m.workerMapReduceMutex.Unlock()
 		reply.Status = 2
+		reply.NReduce = m.nReduce
 		return nil
 	}
 	reply.Status = 0
+	reply.NReduce = m.nReduce
 	return nil
 }
 
 func (m *Master) ReportWorker(args *RegisterArgs, reply *RegisterReply) error {
 	panic("implement me")
+}
+
+func (m *Master) checkWorkerRunStatusAsync() {
+	for !m.Done() {
+
+		time.Sleep(10 * time.Second)
+	}
+}
+
+func (m *Master) checkWorkerRunStatus() {
+	go m.checkWorkerRunStatusAsync()
 }
 
 //
@@ -116,12 +133,14 @@ func MakeMaster(files []string, nReduce int) *Master {
 		nReduce:     nReduce,
 		workerMap:   make(map[int]*workerStatus),
 		workerId:    0,
-		mapRequests: 0,
+		mapStart:    0,
 		reduceStart: 0,
 	}
 
 	// Your code here.
 
 	m.server()
+	m.checkWorkerRunStatus()
+
 	return &m
 }
