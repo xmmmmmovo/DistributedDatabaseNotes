@@ -27,11 +27,13 @@ type workerStatus struct {
 type Master struct {
 	// Your definitions here.
 	fileNames            []string              // 文件名列表
+	outputFileMap        [][]string            // 输出文件
 	workerMap            map[int]*workerStatus // 工作状态
 	nReduce              int                   // reduce数量
 	workerId             int                   // id
-	outputFileMap        [][]string            // 输出文件
-	mapStart             int                   // map请求数量
+	taskId               int                   // taskId
+	mapFinished          int                   // map结束
+	mapStart             int                   // map开始
 	reduceStart          int                   // reduce开始数量
 	workerIdMutex        sync.RWMutex          // id锁
 	workerMapReduceMutex sync.RWMutex          // mr锁
@@ -46,35 +48,39 @@ func (m *Master) RegisterWorker(args *RegisterArgs, reply *RegisterReply) error 
 	m.workerId++
 	m.workerIdMutex.Unlock()
 	fmt.Println("Worker注册成功！Id:", reply.Id)
-	m.workerMap[reply.Id] = &workerStatus{
-		status: 0,
-	}
+	reply.NReduce = m.nReduce
+	m.workerMap[reply.Id] = &workerStatus{}
 	return nil
 }
 
 func (m *Master) FetchWorker(args *FetchArgs, reply *FetchReply) error {
+	m.workerMapReduceMutex.Lock()
+	defer m.workerMapReduceMutex.Unlock()
+
 	if m.mapStart < len(m.fileNames) {
-		m.workerMapReduceMutex.Lock()
-		m.workerMap[args.Id].status = 1
+		m.workerMap[args.Id].status = MapStatus
+		m.workerMap[args.Id].fileIndex = m.mapStart
+		m.workerMap[args.Id].fetchWorkTime = time.Now()
+		reply.FileNames = []string{m.fileNames[m.mapStart]}
 		m.mapStart++
-		reply.FileNames = []string{m.fileNames[m.mapStart-1]}
-		m.workerMapReduceMutex.Unlock()
-		reply.Status = 1
-		reply.NReduce = m.nReduce
+		reply.Status = MapStatus
+		reply.TaskId = m.taskId
+		m.taskId++
 		return nil
-	}
-	if m.reduceStart < m.nReduce {
-		m.workerMapReduceMutex.Lock()
-		m.workerMap[args.Id].status = 2
+	} else if m.mapFinished == len(m.fileNames) && m.reduceStart < m.nReduce {
+		m.workerMap[args.Id].status = ReduceStatus
+		m.workerMap[args.Id].fileIndex = m.reduceStart
+		m.workerMap[args.Id].fetchWorkTime = time.Now()
+		reply.FileNames = m.outputFileMap[m.reduceStart]
 		m.reduceStart++
-		reply.FileNames = m.outputFileMap[m.reduceStart-1]
-		m.workerMapReduceMutex.Unlock()
-		reply.Status = 2
-		reply.NReduce = m.nReduce
+		reply.Status = ReduceStatus
+		reply.TaskId = m.taskId
+		m.taskId++
 		return nil
 	}
-	reply.Status = 0
-	reply.NReduce = m.nReduce
+	m.workerMap[args.Id].status = IdleStatus
+	m.workerMap[args.Id].fetchWorkTime = time.Now()
+	reply.Status = IdleStatus
 	return nil
 }
 
@@ -133,7 +139,6 @@ func MakeMaster(files []string, nReduce int) *Master {
 		nReduce:     nReduce,
 		workerMap:   make(map[int]*workerStatus),
 		workerId:    0,
-		mapStart:    0,
 		reduceStart: 0,
 	}
 

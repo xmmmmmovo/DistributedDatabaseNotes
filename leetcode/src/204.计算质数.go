@@ -1,4 +1,4 @@
-package leetcode
+package src
 
 // countPrimes 素数筛
 func countPrimes(n int) int {

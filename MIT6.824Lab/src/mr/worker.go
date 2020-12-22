@@ -44,7 +44,7 @@ func Worker(mapf func(string, string) []KeyValue,
 	// 这里的mapf和reducef是maph函数和reduce函数
 
 	// Your worker implementation here.
-	workerId, ok := callRegisterWorker()
+	workerId, nReduce, ok := callRegisterWorker()
 	if !ok {
 		fmt.Println("获取Id失败！")
 		return
@@ -55,7 +55,7 @@ func Worker(mapf func(string, string) []KeyValue,
 	// CallExample()
 	for {
 		log.Println("运行中")
-		status, nReduce, filenames, ok := callFetchWorker()
+		status, filenames, ok := callFetchWorker()
 		if !ok {
 			fmt.Println("获取任务失败！")
 			return
@@ -71,24 +71,24 @@ func Worker(mapf func(string, string) []KeyValue,
 		case 2:
 			reduceFuncTask(reducef)
 		}
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 1)
 	}
 }
 
-func callRegisterWorker() (int, bool) {
+func callRegisterWorker() (int, int, bool) {
 	args := RegisterArgs{}
 	reply := RegisterReply{}
 
 	err := call("Master.RegisterWorker", &args, &reply)
-	return reply.Id, err
+	return reply.Id, reply.NReduce, err
 }
 
-func callFetchWorker() (int, int, []string, bool) {
+func callFetchWorker() (int, []string, bool) {
 	args := FetchArgs{}
 	reply := FetchReply{}
 
 	err := call("Master.FetchWorker", &args, &reply)
-	return reply.Status, reply.NReduce, reply.FileNames, err
+	return reply.Status, reply.FileNames, err
 }
 
 func mapFuncTask(id int, filename string, mapf func(string, string) []KeyValue, nReduce int) error {

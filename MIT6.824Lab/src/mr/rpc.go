@@ -11,13 +11,26 @@ import "strconv"
 
 // Add your RPC definitions here.
 
+const (
+	IdleStatus = 0
+	MapStatus
+	ReduceStatus
+)
+
+const (
+	Failed  = -1
+	Running = 1
+	Success = 1
+)
+
 // 注册参数
 type RegisterArgs struct {
 }
 
 // 注册返回
 type RegisterReply struct {
-	Id int
+	Id      int
+	NReduce int
 }
 
 // 获取任务参数
@@ -27,9 +40,9 @@ type FetchArgs struct {
 
 // 获取任务返回
 type FetchReply struct {
+	TaskId    int
 	Status    int
 	FileNames []string
-	NReduce   int
 }
 
 // 报告参数
