@@ -69,8 +69,3 @@
 
 [**Redis 命令参考**](http://redisdoc.com/)
 
-
-
-## Leetcode
-
-[题目列表](./leetcode/leetcode.md)
