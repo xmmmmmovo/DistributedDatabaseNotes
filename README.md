@@ -1,19 +1,5 @@
 # DistributedSystemNotes
-分布式系统笔记
-
-## [MasteringGo](https://github.com/hantmac/Mastering_Go_Second_Edition_Zh_CN)
-
-- Go基本数据类型
-- 组合类型的使用
-- 数据结构
-- Go package中不为人知的知识
-- 反射和接口
-- Go UNIX系统编程
-- 并发-Goroutines,Channel和Pipeline
-- Go 并发-进阶讨论
-- 代码测试，优化及分析
-- Go网络编程基础
-- 网络编程 - 构建服务器与客户端
+分布式系统笔记（其中包含很多以前转移过来的go笔记之类的）
 
 ## [MIT6.824(2020Spring)](https://pdos.csail.mit.edu/6.824/schedule.html)
 
